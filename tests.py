@@ -1,7 +1,7 @@
 import unittest
 from datetime import date
 
-from fastapi import HTTPException
+from exceptions import ValidationException
 
 from schemas import ContributionInfo
 from services.contribution_calculator import calculate_contribution_for_next_month, \
@@ -78,37 +78,30 @@ class GetContributionTest(unittest.TestCase):
 
 class ValidationTest(unittest.TestCase):
     def test_date_validation(self):
-        with self.assertRaises(HTTPException) as e:
+        with self.assertRaises(ValidationException) as e:
             ContributionInfo(date='abc', periods=4, amount=10000, rate=6)
-            self.assertEqual(e.exception.status_code, 400)
-            self.assertEqual(e.exception.detail, 'Date is not valid')
+            self.assertEqual(e.exception.error, 'Date is not valid')
 
     def test_periods_validation(self):
-        with self.assertRaises(HTTPException) as e:
+        with self.assertRaises(ValidationException) as e:
             ContributionInfo(date='01.02.2012', periods=90, amount=10000, rate=6)
-            self.assertEqual(e.exception.status_code, 400)
-            self.assertEqual(e.exception.detail, 'Periods is not valid')
+            self.assertEqual(e.exception.error, 'Periods is not valid')
 
             ContributionInfo(date='01.02.2012', periods=-1, amount=10000, rate=6)
-            self.assertEqual(e.exception.status_code, 400)
-            self.assertEqual(e.exception.detail, 'Periods is not valid')
+            self.assertEqual(e.exception.error, 'Periods is not valid')
 
     def test_amount_validation(self):
-        with self.assertRaises(HTTPException) as e:
-            ContributionInfo(date='01.02.2012', periods=4, amount=20, rate=6)
-            self.assertEqual(e.exception.status_code, 400)
-            self.assertEqual(e.exception.detail, 'Amount is not valid')
+        with self.assertRaises(ValidationException) as e:
+            ContributionInfo(date='01.02.2012', periods=3, amount=20, rate=6)
+            self.assertEqual(e.exception.error, 'Amount is not valid')
 
             ContributionInfo(date='01.02.2012', periods=4, amount=10000000000, rate=6)
-            self.assertEqual(e.exception.status_code, 400)
-            self.assertEqual(e.exception.detail, 'Amount is not valid')
+            self.assertEqual(e.exception.error, 'Amount is not valid')
 
     def test_rate_validation(self):
-        with self.assertRaises(HTTPException) as e:
+        with self.assertRaises(ValidationException) as e:
             ContributionInfo(date='01.02.2012', periods=4, amount=10000, rate=0)
-            self.assertEqual(e.exception.status_code, 400)
-            self.assertEqual(e.exception.detail, 'Rate is not valid')
+            self.assertEqual(e.exception.error, 'Rate is not valid')
 
             ContributionInfo(date='01.02.2012', periods=4, amount=10000, rate=10)
-            self.assertEqual(e.exception.status_code, 400)
-            self.assertEqual(e.exception.detail, 'Rate is not valid')
+            self.assertEqual(e.exception.error, 'Rate is not valid')
